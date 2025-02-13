@@ -3,6 +3,9 @@
 	import { v4 as uuid } from 'uuid';
 	import { ChevronDown, ChevronUp, Minus, Plus, X } from 'lucide-svelte';
 	import { defaultTiers, getBase64, type Tier, type TierImage } from './utils';
+	import { scale } from 'svelte/transition';
+	import { cubicInOut } from 'svelte/easing';
+	import { flip } from 'svelte/animate';
 
 	let {
 		images = $bindable([]),
@@ -50,7 +53,7 @@
 </script>
 
 {#snippet image(image: TierImage)}
-	<div class="image">
+	<div class="image" transition:scale={{ start: 0.5, duration: 300, easing: cubicInOut }}>
 		<button
 			use:tippy={() => ({
 				content: document.getElementById(`tiers-for-${image.id}`) || undefined,
@@ -66,6 +69,7 @@
 					});
 				},
 				trigger: 'click',
+				duration: 0,
 				interactive: true,
 				placement: 'bottom'
 			})}
@@ -101,7 +105,11 @@
 <div class="tiers">
 	{#each tiers as tier, index (tier.id)}
 		{@const tierImage = images.filter((i) => i.tier === tier.id)}
-		<div class="tier">
+		<div
+			class="tier"
+			animate:flip={{ duration: 300, easing: cubicInOut }}
+			transition:scale={{ start: 0.5, duration: 300, easing: cubicInOut }}
+		>
 			<div
 				class="label"
 				contenteditable="true"
@@ -111,7 +119,7 @@
 
 			<div class="content">
 				{#each tierImage as _image (_image.id)}
-					<div class="image-outer">
+					<div class="image-outer" animate:flip={{ duration: 300, easing: cubicInOut }}>
 						{@render image(_image)}
 					</div>
 				{/each}
@@ -176,7 +184,7 @@
 
 <div class="images">
 	{#each tierLessImages as _image (_image.id)}
-		<div class="image-outer">
+		<div class="image-outer" animate:flip={{ duration: 300, easing: cubicInOut }}>
 			{@render image(_image)}
 		</div>
 	{/each}
