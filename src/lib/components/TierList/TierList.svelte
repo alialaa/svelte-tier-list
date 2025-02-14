@@ -26,6 +26,25 @@
 			images.splice(index, 1);
 		}
 	}
+	function swapTiers(tier1: number, tier2: number) {
+		if (tier1 < 0 || tier1 > tiers.length - 1 || tier2 < 0 || tier2 > tiers.length - 1) return;
+		const temp = tiers[tier1];
+		tiers[tier1] = tiers[tier2];
+		tiers[tier2] = temp;
+	}
+	function addNewTier(index: number) {
+		const label = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)];
+		const color = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+		tiers.splice(index, 0, { id: uuid(), color, label });
+	}
+	function deleteTier(index: number) {
+		images.forEach((image) => {
+			if (image.tier === tiers[index].id) {
+				image.tier = undefined;
+			}
+		});
+		tiers.splice(index, 1);
+	}
 </script>
 
 {#snippet image(image: TierImage)}
@@ -92,6 +111,9 @@
 						disabled={index === 0}
 						aria-label="Move Tier {tier.label} Up"
 						use:tippy={() => ({ content: 'Move Up' })}
+						onclick={() => {
+							swapTiers(index, index - 1);
+						}}
 					>
 						<ChevronUp />
 					</button>
@@ -101,6 +123,9 @@
 						disabled={index === tiers.length - 1}
 						aria-label="Move Tier {tier.label} Down"
 						use:tippy={() => ({ content: 'Move Down' })}
+						onclick={() => {
+							swapTiers(index, index + 1);
+						}}
 					>
 						<ChevronDown />
 					</button>
@@ -110,6 +135,9 @@
 					<button
 						aria-label="Add Tier Below Tier {tier.label}"
 						use:tippy={() => ({ content: 'Add Tier Below' })}
+						onclick={() => {
+							addNewTier(index + 1);
+						}}
 					>
 						<Plus />
 					</button>
@@ -118,6 +146,9 @@
 					<button
 						aria-label="Delete Tier {tier.label}"
 						use:tippy={() => ({ content: 'Delete Tier' })}
+						onclick={() => {
+							deleteTier(index);
+						}}
 					>
 						<Minus />
 					</button>
