@@ -1,10 +1,9 @@
 <script lang="ts">
 	import TierList from '$lib/components/TierList/TierList.svelte';
-
+	let images = $state([]);
 </script>
 
-<TierList />
-
+<TierList bind:images />
 
 <style lang="scss">
 	:global body {
