@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { v4 as uuid } from 'uuid';
 	import tippy from '$lib/actions/tippy.svelte';
-	import { ChevronDown, ChevronUp, Minus, Plus } from 'lucide-svelte';
+	import { ChevronDown, ChevronUp, Minus, Plus, X } from 'lucide-svelte';
 	import { defaultTiers, getBase64, type Tier, type TierImage } from './utils';
 
 	let {
@@ -80,9 +80,33 @@
 	{#each tierLessImages as image}
 		<div class="image-outer">
 			<div class="image">
-				<button>
+				<button
+					use:tippy={() => ({
+						content: document.getElementById(`tiers-for-${image.id}`) || undefined,
+						onShown: (instance) => {
+							instance.popper.addEventListener('click', () => {
+								instance.hide();
+							});
+						},
+						trigger: 'click',
+						interactive: true,
+						placement: 'bottom'
+					})}
+				>
 					<img src={image.image} alt="" />
 				</button>
+				<div class="image-tiers" id="tiers-for-{image.id}">
+					{#each tiers.filter((t) => image.tier !== t.id) as tier}
+						<button
+							aria-label="Add Image to Tier {tier.label}"
+							class="tier"
+							style:background-color={tier.color}>{tier.label}</button
+						>
+					{/each}
+					<button aria-label="Remove Image" class="tier remove">
+						<X />
+					</button>
+				</div>
 			</div>
 		</div>
 	{/each}
@@ -153,6 +177,33 @@
 			max-width: 100%;
 			height: 100%;
 			object-fit: contain;
+		}
+		.image-tiers {
+			display: flex;
+			flex-direction: row;
+			margin: 0 -2px;
+			.remove {
+				background-color: transparent;
+				padding: 0;
+				:global(svg) {
+					stroke: #fff;
+					width: 14px;
+				}
+			}
+			.tier {
+				width: 20px;
+				margin: 2px;
+				aspect-ratio: 1;
+				color: #111;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border: none;
+				cursor: pointer;
+				&:hover {
+					filter: saturate(5);
+				}
+			}
 		}
 	}
 	.tiers {
