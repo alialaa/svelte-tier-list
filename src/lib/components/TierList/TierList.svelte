@@ -3,7 +3,7 @@
 	import tippy from '$lib/actions/tippy.svelte';
 	import { ChevronDown, ChevronUp, Minus, Plus, X } from 'lucide-svelte';
 	import { defaultTiers, getBase64, type Tier, type TierImage } from './utils';
-	import { scale } from 'svelte/transition';
+	import { crossfade, scale } from 'svelte/transition';
 	import { cubicInOut } from 'svelte/easing';
 	import { flip } from 'svelte/animate';
 
@@ -48,10 +48,18 @@
 		});
 		tiers.splice(index, 1);
 	}
+
+	const [send, receive] = crossfade({
+		duration: 300,
+		easing: cubicInOut,
+		fallback(node) {
+			return scale(node, { duration: 300, easing: cubicInOut });
+		}
+	});
 </script>
 
 {#snippet image(image: TierImage)}
-	<div class="image" transition:scale={{ duration: 300, easing: cubicInOut }}>
+	<div class="image" in:receive={{ key: image.id }} out:send={{ key: image.id }}>
 		<button
 			use:tippy={() => ({
 				content: document.getElementById(`tiers-for-${image.id}`) || undefined,
