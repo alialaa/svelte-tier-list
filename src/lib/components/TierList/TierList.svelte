@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { v4 as uuid } from 'uuid';
 	import tippy from '$lib/actions/tippy.svelte';
 	import { ChevronDown, ChevronUp, Minus, Plus } from 'lucide-svelte';
-	import { defaultTiers, type Tier, type TierImage } from './utils';
+	import { defaultTiers, getBase64, type Tier, type TierImage } from './utils';
 
 	let {
 		images = $bindable([]),
@@ -11,7 +12,8 @@
 		tiers?: Tier[];
 	} = $props();
 
-	$inspect(tiers);
+	// $inspect(images);
+	let tierLessImages = $derived(images.filter((i) => !i.tier));
 </script>
 
 <div class="tiers">
@@ -74,6 +76,38 @@
 	{/each}
 </div>
 
+<div class="images">
+	{#each tierLessImages as image}
+		<div class="image-outer">
+			<div class="image">
+				<button>
+					<img src={image.image} alt="" />
+				</button>
+			</div>
+		</div>
+	{/each}
+</div>
+
+<div class="add-images">
+	<div class="input">
+		<input
+			type="file"
+			accept="image/png, image/jpeg, image/svg+xml"
+			multiple
+			id="images"
+			name="images"
+			aria-label="Add Images"
+			oninput={(e) => {
+				[...(e.currentTarget.files || [])].forEach(async (file) => {
+					const base64 = await getBase64(file);
+					images.push({ id: uuid(), image: base64 as string });
+				});
+			}}
+		/>
+		<span>Add Images</span>
+	</div>
+</div>
+
 <style lang="scss">
 	* {
 		box-sizing: border-box;
@@ -83,6 +117,42 @@
 	input {
 		&:focus-visible {
 			outline: 2px solid #ff3e00;
+		}
+	}
+	.images {
+		display: flex;
+		flex-wrap: wrap;
+		margin-bottom: 10px;
+		min-height: 50px;
+		margin: 10px -2px 0;
+		.image {
+			border: 1px dashed #626262;
+		}
+	}
+	.image-outer {
+		min-width: 70px;
+		width: 10%;
+	}
+	.image {
+		border: 1px dashed #3c3c3c;
+		margin: 2px;
+		aspect-ratio: 1;
+		position: relative;
+		transition: 0.5s;
+		&:hover {
+			border: 1px dashed #ff3e00;
+		}
+		> button {
+			border: none;
+			background-color: transparent;
+			padding: 10px;
+			height: 100%;
+			cursor: pointer;
+		}
+		img {
+			max-width: 100%;
+			height: 100%;
+			object-fit: contain;
 		}
 	}
 	.tiers {
@@ -158,6 +228,34 @@
 				flex-wrap: wrap;
 				padding: 0 4px;
 				align-items: center;
+			}
+		}
+	}
+	.add-images {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 20px;
+		.input {
+			display: inline-block;
+			position: relative;
+			cursor: pointer;
+			span {
+				background-color: #ff3e00;
+				padding: 10px 15px;
+				display: block;
+				position: relative;
+				pointer-events: none;
+			}
+			input#images {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: 0;
+				cursor: pointer;
+				&:focus-visible {
+					outline: 2px solid #fff;
+				}
 			}
 		}
 	}
