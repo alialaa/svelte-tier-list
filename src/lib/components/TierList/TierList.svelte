@@ -3,6 +3,9 @@
 	import tippy from '$lib/actions/tippy.svelte';
 	import { ChevronDown, ChevronUp, Minus, Plus, X } from 'lucide-svelte';
 	import { defaultTiers, getBase64, type Tier, type TierImage } from './utils';
+	import { scale } from 'svelte/transition';
+	import { cubicInOut } from 'svelte/easing';
+	import { flip } from 'svelte/animate';
 
 	let {
 		images = $bindable([]),
@@ -48,15 +51,22 @@
 </script>
 
 {#snippet image(image: TierImage)}
-	<div class="image">
+	<div class="image" transition:scale={{ duration: 300, easing: cubicInOut }}>
 		<button
 			use:tippy={() => ({
 				content: document.getElementById(`tiers-for-${image.id}`) || undefined,
+				onMount: () => {
+					const template = document.getElementById(`tiers-for-${image.id}`);
+					if (template) {
+						template.style.display = 'flex';
+					}
+				},
 				onShown: (instance) => {
 					instance.popper.addEventListener('click', () => {
 						instance.hide();
 					});
 				},
+				duration: 0,
 				trigger: 'click',
 				interactive: true,
 				placement: 'bottom'
@@ -64,7 +74,7 @@
 		>
 			<img src={image.image} alt="" />
 		</button>
-		<div class="image-tiers" id="tiers-for-{image.id}">
+		<div class="image-tiers" style="display: none" id="tiers-for-{image.id}">
 			{#each tiers.filter((t) => image.tier !== t.id) as tier}
 				<button
 					aria-label="Add Image to Tier {tier.label}"
@@ -89,9 +99,13 @@
 {/snippet}
 
 <div class="tiers">
-	{#each tiers as tier, index}
+	{#each tiers as tier, index (tier.id)}
 		{@const tierImages = images.filter((i) => i.tier === tier.id)}
-		<div class="tier">
+		<div
+			class="tier"
+			animate:flip={{ duration: 300, easing: cubicInOut }}
+			transition:scale={{ duration: 300, easing: cubicInOut }}
+		>
 			<div
 				class="label"
 				contenteditable="true"
@@ -99,8 +113,8 @@
 				style:background-color={tier.color}
 			></div>
 			<div class="content">
-				{#each tierImages as _image}
-					<div class="image-outer">
+				{#each tierImages as _image (_image.id)}
+					<div class="image-outer" animate:flip={{ duration: 300, easing: cubicInOut }}>
 						{@render image(_image)}
 					</div>
 				{/each}
@@ -168,8 +182,8 @@
 </div>
 
 <div class="images">
-	{#each tierLessImages as _image}
-		<div class="image-outer">
+	{#each tierLessImages as _image (_image.id)}
+		<div class="image-outer" animate:flip={{ duration: 300, easing: cubicInOut }}>
 			{@render image(_image)}
 		</div>
 	{/each}
