@@ -14,10 +14,64 @@
 
 	// $inspect(images);
 	let tierLessImages = $derived(images.filter((i) => !i.tier));
+
+	function addImageToTier(image: TierImage, tier: Tier) {
+		image.tier = tier.id;
+	}
+	function removeImage(image: TierImage) {
+		if (image.tier) {
+			image.tier = undefined;
+		} else {
+			const index = images.findIndex((i) => i.id === image.id);
+			images.splice(index, 1);
+		}
+	}
 </script>
+
+{#snippet image(image: TierImage)}
+	<div class="image">
+		<button
+			use:tippy={() => ({
+				content: document.getElementById(`tiers-for-${image.id}`) || undefined,
+				onShown: (instance) => {
+					instance.popper.addEventListener('click', () => {
+						instance.hide();
+					});
+				},
+				trigger: 'click',
+				interactive: true,
+				placement: 'bottom'
+			})}
+		>
+			<img src={image.image} alt="" />
+		</button>
+		<div class="image-tiers" id="tiers-for-{image.id}">
+			{#each tiers.filter((t) => image.tier !== t.id) as tier}
+				<button
+					aria-label="Add Image to Tier {tier.label}"
+					class="tier"
+					style:background-color={tier.color}
+					onclick={() => {
+						addImageToTier(image, tier);
+					}}>{tier.label}</button
+				>
+			{/each}
+			<button
+				aria-label="Remove Image"
+				class="tier remove"
+				onclick={() => {
+					removeImage(image);
+				}}
+			>
+				<X />
+			</button>
+		</div>
+	</div>
+{/snippet}
 
 <div class="tiers">
 	{#each tiers as tier, index}
+		{@const tierImages = images.filter((i) => i.tier === tier.id)}
 		<div class="tier">
 			<div
 				class="label"
@@ -25,7 +79,13 @@
 				bind:innerText={tier.label}
 				style:background-color={tier.color}
 			></div>
-			<div class="content"></div>
+			<div class="content">
+				{#each tierImages as _image}
+					<div class="image-outer">
+						{@render image(_image)}
+					</div>
+				{/each}
+			</div>
 			<div class="options">
 				<div class="option">
 					<button
@@ -77,37 +137,9 @@
 </div>
 
 <div class="images">
-	{#each tierLessImages as image}
+	{#each tierLessImages as _image}
 		<div class="image-outer">
-			<div class="image">
-				<button
-					use:tippy={() => ({
-						content: document.getElementById(`tiers-for-${image.id}`) || undefined,
-						onShown: (instance) => {
-							instance.popper.addEventListener('click', () => {
-								instance.hide();
-							});
-						},
-						trigger: 'click',
-						interactive: true,
-						placement: 'bottom'
-					})}
-				>
-					<img src={image.image} alt="" />
-				</button>
-				<div class="image-tiers" id="tiers-for-{image.id}">
-					{#each tiers.filter((t) => image.tier !== t.id) as tier}
-						<button
-							aria-label="Add Image to Tier {tier.label}"
-							class="tier"
-							style:background-color={tier.color}>{tier.label}</button
-						>
-					{/each}
-					<button aria-label="Remove Image" class="tier remove">
-						<X />
-					</button>
-				</div>
-			</div>
+			{@render image(_image)}
 		</div>
 	{/each}
 </div>
